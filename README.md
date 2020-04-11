@@ -14,7 +14,7 @@ status](https://travis-ci.org/mikejohnson51/NFHL.svg?branch=master)](https://tra
 The goal of NFHL is to provide access to the [National Flood Hazards
 Layers](https://www.fema.gov/national-flood-hazard-layer-nfhl) using the
 [AOI](https://github.com/mikejohnson51/AOI) subsetting workflows. Some
-preliminary thoughts on makeing this data more ‘serviceable’ are also
+preliminary thoughts on making this data more ‘serviceable’ are also
 given.
 
 ## Installation
