@@ -5,8 +5,8 @@
 
 <!-- badges: start -->
 
-[![Build
-Status](https://travis-ci.org/mikejohnson51/NFHL.svg?branch=master)](https://travis-ci.org/mikejohnson51/NFHL)
+[![Travis build
+status](https://travis-ci.org/mikejohnson51/NFHL.svg?branch=master)](https://travis-ci.org/mikejohnson51/NFHL)
 [![experimental](http://badges.github.io/stability-badges/dist/experimental.svg)](http://github.com/badges/stability-badges)
 
 <!-- badges: end -->
@@ -224,7 +224,7 @@ system.time({
   elev = read_json(url) 
 })
 #>    user  system elapsed 
-#>   0.085   0.010   1.580
+#>   0.107   0.010   1.566
 ```
 
 ``` r

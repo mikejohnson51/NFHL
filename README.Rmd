@@ -35,7 +35,7 @@ bg = rosm::osm.raster(bb, type = 'osmgrayscale')
 
 <!-- badges: start -->
 
-[![Build Status](https://travis-ci.org/mikejohnson51/NFHL.svg?branch=master)](https://travis-ci.org/mikejohnson51/NFHL) [![experimental](http://badges.github.io/stability-badges/dist/experimental.svg)](http://github.com/badges/stability-badges)
+[![Travis build status](https://travis-ci.org/mikejohnson51/NFHL.svg?branch=master)](https://travis-ci.org/mikejohnson51/NFHL) [![experimental](http://badges.github.io/stability-badges/dist/experimental.svg)](http://github.com/badges/stability-badges)
 
 <!-- badges: end -->
 
