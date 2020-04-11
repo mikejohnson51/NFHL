@@ -9,7 +9,9 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
-  out.width = "100%"
+  out.width = "100%",
+  tidy.opts=list(width.cutoff=60),
+  tidy=TRUE
 )
 
 devtools::load_all()
@@ -39,7 +41,7 @@ bg = rosm::osm.raster(bb, type = 'osmgrayscale')
 
 <!-- badges: end -->
 
-The goal of NFHL is to provide access to the [National Flood Hazards Layers](https://www.fema.gov/national-flood-hazard-layer-nfhl) using the [AOI](https://github.com/mikejohnson51/AOI) subsetting workflows. Some preliminary thoughts on makeing this data more 'serviceable' are also given.
+The goal of NFHL is to provide access to the [National Flood Hazards Layers](https://www.fema.gov/national-flood-hazard-layer-nfhl) using the [AOI](https://github.com/mikejohnson51/AOI) subsetting workflows. Some preliminary thoughts on making this data more 'serviceable' are also given.
 
 ## Installation
 
@@ -75,7 +77,7 @@ DT::datatable(nfhl_meta,
 
 ### LayerID descriptions
 
-Some of the layer names are vaugue. The `describe_nfhl` function scrapes the metadata for a given layerID and provides the name, description and spatial extents. 
+Some of the layer names are vague. The `describe_nfhl` function scrapes the metadata for a given layerID and provides the name, description and spatial extents. 
 
 Lets learn more about layerID 14, 'Cross-Sections':
 
@@ -85,7 +87,7 @@ nfhl_describe(14)
 
 ### Getting Spatial Data
 
-The `nfhl_get` function extacts the spatial data from the NDHL layers for a given spatial extent. 
+The `nfhl_get` function extracts the spatial data from the NDHL layers for a given spatial extent. 
 
 A general workflow using the AOI/NFHL packages is 
 
@@ -121,7 +123,7 @@ floodhazard <- nfhl_get(AOI, 28) %>%
 
 ### NHD and Cross-sections
 
-Before we learned that the NFHL offered cross-sectional information (ID: 14). Lets get this data for our UCSB AOI, and overlay it with hydrographic data from the National Hydrograhpy Datast (NHD) found with the [HydroData](https://github.com/mikejohnson51/HydroData) package.
+Before we learned that the NFHL offered cross-sectional information (ID: 14). Lets get this data for our UCSB AOI, and overlay it with hydrographic data from the National Hydrography Dataset (NHD) found with the [HydroData](https://github.com/mikejohnson51/HydroData) package.
 
 ```{r, message = F, warning = F}
 nhd <- HydroData::findNHD(AOI)[[2]]
@@ -180,7 +182,7 @@ dim(xx)
 head(xx)
 ```
 
-In total we find 43 structures that cross the NHD, realtion 1 in the above tibble tells us that bridge 2533589 crosses COMID 17595405.
+In total we find 43 structures that cross the NHD, relation 1 in the above tibble tells us that bridge 2533589 crosses COMID 17595405.
 
 ## Generalize to URIs
 
@@ -220,7 +222,7 @@ tm_shape(bg2) + tm_rgb() +
 
 ### Elevation at Intersection
 
-We can use our resource URIs to call the respective spatial feautures, intersect, them, extract the coordinates or intersection, and use those to query the USGS elevation API:
+We can use our resource URIs to call the respective spatial features, intersect, them, extract the coordinates or intersection, and use those to query the USGS elevation API:
 
 ```{r, warning=F, message=F}
 system.time({
@@ -239,8 +241,8 @@ system.time({
 (elev)
 ```
 
-## Acknowdegements
+## Acknowledgements
 
-[Mike Johnson](http://mikejohnson51.github.io) is a graducate student in geography working with [Keith Clarke](http://www.geog.ucsb.edu/~kclarke/). This work contributes to the NSF funded [Convergence Accelorator Program](https://nsf.gov/awardsearch/showAward?AWD_ID=1937099&HistoricalAwards=false) on [Urban Flooding](https://ufokn.github.io/UFOKN/).
+[Mike Johnson](http://mikejohnson51.github.io) is a graduate student in geography working with [Keith Clarke](http://www.geog.ucsb.edu/~kclarke/). This work contributes to the NSF funded [Convergence Accelorator Program](https://nsf.gov/awardsearch/showAward?AWD_ID=1937099&HistoricalAwards=false) on [Urban Flooding](https://ufokn.github.io/UFOKN/).
 
-This package is experimental and comes with no garuntee `r emo::ji("smile")`. Pull requests are welcome!!
+This package is experimental and comes with no guarantee `r emo::ji("smile")`. Pull requests are welcome!!

@@ -14,7 +14,7 @@ status](https://travis-ci.org/mikejohnson51/NFHL.svg?branch=master)](https://tra
 The goal of NFHL is to provide access to the [National Flood Hazards
 Layers](https://www.fema.gov/national-flood-hazard-layer-nfhl) using the
 [AOI](https://github.com/mikejohnson51/AOI) subsetting workflows. Some
-preliminary thoughts on makeing this data more ‘serviceable’ are also
+preliminary thoughts on making this data more ‘serviceable’ are also
 given.
 
 ## Installation
@@ -48,7 +48,7 @@ nfhl_meta
 
 ### LayerID descriptions
 
-Some of the layer names are vaugue. The `describe_nfhl` function scrapes
+Some of the layer names are vague. The `describe_nfhl` function scrapes
 the metadata for a given layerID and provides the name, description and
 spatial extents.
 
@@ -74,7 +74,7 @@ nfhl_describe(14)
 
 ### Getting Spatial Data
 
-The `nfhl_get` function extacts the spatial data from the NDHL layers
+The `nfhl_get` function extracts the spatial data from the NDHL layers
 for a given spatial extent.
 
 A general workflow using the AOI/NFHL packages is
@@ -94,8 +94,7 @@ nfhl_describe(28)$Description
 #> [1] "Labels for flood zones. "
 
 # Extract Flood Hazard Polygons and filter
-floodhazard <- nfhl_get(AOI, 28) %>% 
-  filter(SFHA_TF == "T")
+floodhazard <- nfhl_get(AOI, 28) %>% filter(SFHA_TF == "T")
 ```
 
 <img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
@@ -106,14 +105,14 @@ floodhazard <- nfhl_get(AOI, 28) %>%
 
 Before we learned that the NFHL offered cross-sectional information (ID:
 14). Lets get this data for our UCSB AOI, and overlay it with
-hydrographic data from the National Hydrograhpy Datast (NHD) found with
+hydrographic data from the National Hydrography Dataset (NHD) found with
 the [HydroData](https://github.com/mikejohnson51/HydroData) package.
 
 ``` r
 nhd <- HydroData::findNHD(AOI)[[2]]
 #> Returned object contains: 102 nhd flowlines
 # Note that any sf object can be passed to nfhl_get
-cs  <- nfhl_get(nhd, 14)
+cs <- nfhl_get(nhd, 14)
 ```
 
 <img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
@@ -136,13 +135,9 @@ Here we’ll find those that cross the NHD, and add the ‘crosses’
 relationship.
 
 ``` r
-xx = st_join(stru, 
-        st_transform(nhd, st_crs(stru)),
-        join = st_crosses,
-        left = FALSE) %>% 
-  st_drop_geometry() %>% 
-  mutate(realtionship = "crosses") %>% 
-  select(OBJECTID, realtionship, comid, STRUCT_TYP, LAYER)
+xx = st_join(stru, st_transform(nhd, st_crs(stru)), join = st_crosses, 
+    left = FALSE) %>% st_drop_geometry() %>% mutate(realtionship = "crosses") %>% 
+    select(OBJECTID, realtionship, comid, STRUCT_TYP, LAYER)
 
 dim(xx)
 #> [1] 43  5
@@ -158,7 +153,7 @@ head(xx)
 #> 6  2533911 crosses      17595357 Culvert                                      24
 ```
 
-In total we find 43 structures that cross the NHD, realtion 1 in the
+In total we find 43 structures that cross the NHD, relation 1 in the
 above tibble tells us that bridge 2533589 crosses COMID 17595405.
 
 ## Generalize to URIs
@@ -167,14 +162,12 @@ Each of these features (Structure and COMID) can be resolved to a URI
 using the following patterns:
 
 ``` r
-fema_base = 'https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/'
-usgs_base = 'https://labs.waterdata.usgs.gov/api/nldi/linked-data/comid/'
+fema_base = "https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/"
+usgs_base = "https://labs.waterdata.usgs.gov/api/nldi/linked-data/comid/"
 
-linked = xx %>% 
-  mutate(str_uri = sprintf("%s%s/query?&objectIds=%s&outFields=*&f=geoJSON", fema_base, LAYER,OBJECTID),
-         realtionship,
-         comid_uri = paste0(usgs_base, comid)) %>% 
-  select(str_uri, realtionship, comid_uri)
+linked = xx %>% mutate(str_uri = sprintf("%s%s/query?&objectIds=%s&outFields=*&f=geoJSON", 
+    fema_base, LAYER, OBJECTID), realtionship, comid_uri = paste0(usgs_base, 
+    comid)) %>% select(str_uri, realtionship, comid_uri)
 
 head(linked)
 #> # A tibble: 6 x 3
@@ -196,35 +189,33 @@ the represented features\!
 ### Basic Mapping
 
 ``` r
-tm_shape(bg2) + tm_rgb() +
-  tm_shape(read_sf(linked$str_uri[1])) +
-  tm_lines(col = "red", lwd = 5) +
- tm_shape(read_sf(linked$comid_uri[1])) +
-  tm_lines(col = 'blue', lwd = 2) +
-  tm_layout(title = read_sf(linked$str_uri[1])$STRUCT_TYP)
+tm_shape(bg2) + tm_rgb() + tm_shape(read_sf(linked$str_uri[1])) + 
+    tm_lines(col = "red", lwd = 5) + tm_shape(read_sf(linked$comid_uri[1])) + 
+    tm_lines(col = "blue", lwd = 2) + tm_layout(title = read_sf(linked$str_uri[1])$STRUCT_TYP)
 ```
 
 <img src="man/figures/README-unnamed-chunk-14-1.png" width="100%" />
 
 ### Elevation at Intersection
 
-We can use our resource URIs to call the respective spatial feautures,
+We can use our resource URIs to call the respective spatial features,
 intersect, them, extract the coordinates or intersection, and use those
 to query the USGS elevation API:
 
 ``` r
 system.time({
-  ## Coordinates of Intersection
-  coords <- st_coordinates(st_intersection(read_sf(linked$comid_uri[1]), 
-                           read_sf(linked$str_uri[1])))
-  
-  # Query USGS elevation API
-  url <- sprintf('http://ned.usgs.gov/epqs/pqs.php?x=%s&y=%s&units=Meters&output=json', coords[1], coords[2]) 
-          
-  elev = read_json(url) 
+    ## Coordinates of Intersection
+    coords <- st_coordinates(st_intersection(read_sf(linked$comid_uri[1]), 
+        read_sf(linked$str_uri[1])))
+    
+    # Query USGS elevation API
+    url <- sprintf("http://ned.usgs.gov/epqs/pqs.php?x=%s&y=%s&units=Meters&output=json", 
+        coords[1], coords[2])
+    
+    elev = read_json(url)
 })
 #>    user  system elapsed 
-#>   0.107   0.010   1.566
+#>   0.123   0.012   1.729
 ```
 
 ``` r
@@ -247,14 +238,14 @@ system.time({
 #> [1] "Meters"
 ```
 
-## Acknowdegements
+## Acknowledgements
 
-[Mike Johnson](http://mikejohnson51.github.io) is a graducate student in
+[Mike Johnson](http://mikejohnson51.github.io) is a graduate student in
 geography working with [Keith
 Clarke](http://www.geog.ucsb.edu/~kclarke/). This work contributes to
 the NSF funded [Convergence Accelorator
 Program](https://nsf.gov/awardsearch/showAward?AWD_ID=1937099&HistoricalAwards=false)
 on [Urban Flooding](https://ufokn.github.io/UFOKN/).
 
-This package is experimental and comes with no garuntee 😄. Pull requests
-are welcome\!\!
+This package is experimental and comes with no guarantee 😄. Pull
+requests are welcome\!\!
