@@ -1,0 +1,20 @@
+Package: NFHL
+Title: Extract Data from the National Flood Hazards Layers
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Mike",
+           family = "Johnson",
+           role = c("aut", "cre"),
+           email = "jmj00@ucsb.edu",
+           comment = c(ORCID = "0000-0002-5288-8350"))
+Description: This package uses the AOI subsetting workflow to extract data 
+    from the FEMA National Flood Hazards Layer.
+License: CC0
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.0
+Imports: 
+    sf (>= 0.6),
+    jsonlite,
+    dplyr,
+    stats
