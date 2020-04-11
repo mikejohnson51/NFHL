@@ -1,4 +1,37 @@
-# R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
+language: r
 
-language: R
-cache: packages
+cache:
+  - packages
+  - ccache
+
+sudo: required
+dist: trusty
+latex: false
+
+r:
+  - release
+
+addons:
+  apt:
+    sources:
+      - sourceline: 'ppa:ubuntugis/ubuntugis-unstable'
+    packages:
+      - libudunits2-dev
+      - libproj-dev
+      - libgeos-dev
+      - libgdal-dev
+
+r_build_args: "--no-build-vignettes --no-manual"
+r_check_args: "--no-build-vignettes --no-manual --as-cran"
+
+warnings_are_errors: false
+
+env:
+   global:
+     - _R_CHECK_FORCE_SUGGESTS_=false
+     - R_CODECOV=true
+
+notifications:
+  email:
+    on_success: change
+    on_failure: change
