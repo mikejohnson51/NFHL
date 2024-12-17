@@ -2,4 +2,7 @@ pandoc: 3.1.11
 pkgdown: 2.1.1
 pkgdown_sha: ~
 articles: {}
-last_built: 2024-12-17T07:12Z
+last_built: 2024-12-17T15:28Z
+urls:
+  reference: https://mikejohnson51.github.io/NFHL/reference
+  article: https://mikejohnson51.github.io/NFHL/articles
