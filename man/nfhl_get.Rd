@@ -2,18 +2,37 @@
 % Please edit documentation in R/nfhl_functions.R
 \name{nfhl_get}
 \alias{nfhl_get}
-\title{Query the National Flood Hazard Layers}
+\title{Query the National Flood Hazard Layers (NFHL)}
 \usage{
 nfhl_get(AOI, layer = 28)
 }
 \arguments{
-\item{AOI}{the spatial area to subset to}
+\item{AOI}{An `sf` object representing the spatial area of interest (must have a valid CRS).}
 
-\item{layer}{the NFHL ID}
+\item{layer}{Integer. The NFHL layer ID to query. Default is 28.}
 }
 \value{
-a sf object
+An `sf` object containing the NFHL subset or `NULL` if the query fails.
 }
 \description{
-Subset any NFHL layer to a bounding box
+Subset a specific NFHL layer within a defined bounding box (AOI).
+}
+\details{
+This function queries the National Flood Hazard Layers (NFHL) web service
+to retrieve a specific layer, clipped to a given area of interest (AOI).
+The result is transformed to match the CRS of the AOI.
+}
+\examples{
+\dontrun{
+library(sf)
+# Define an AOI
+AOI <- st_as_sf(data.frame(x = -105, y = 40), coords = c("x", "y"), crs = 4326) |> 
+       st_buffer(0.01)
+
+# Query NFHL layer 28
+nfhl_data <- nfhl_get(AOI, layer = 28)
+
+# Inspect result
+print(nfhl_data)
+}
 }

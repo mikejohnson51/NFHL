@@ -14,38 +14,26 @@ knitr::opts_chunk$set(
   tidy=TRUE
 )
 
-devtools::load_all()
-library(tmaptools)
+library(NFHL)
 library(tmap)
 library(AOI)
 library(dplyr)
-library(DT)
 library(sf)
-
-bb = st_bbox(c(xmin =-119.94455, ymin = 34.40026, 
-               xmax = -119.74297, ymax = 34.46455), 
-        crs = 4269) %>% 
-    st_as_sfc() %>% 
-    as_Spatial()
-
-
-bg = rosm::osm.raster(bb, type = 'osmgrayscale')
-
 ```
 
 # NFHL: National Flood Hazard Layers
 
 <!-- badges: start -->
-
-[![Travis build status](https://travis-ci.org/mikejohnson51/NFHL.svg?branch=master)](https://travis-ci.org/mikejohnson51/NFHL) [![experimental](http://badges.github.io/stability-badges/dist/experimental.svg)](http://github.com/badges/stability-badges)
-
+[![experimental](http://badges.github.io/stability-badges/dist/experimental.svg)](http://github.com/badges/stability-badges)
+[![Dependencies](https://img.shields.io/badge/dependencies-4/19-green?style=flat)](#)
+[![R CMD Check](https://github.com/mikejohnson51/NFHL/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/mikejohnson51/NFHL/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-The goal of NFHL is to provide access to the [National Flood Hazards Layers](https://www.fema.gov/national-flood-hazard-layer-nfhl) using the [AOI](https://github.com/mikejohnson51/AOI) subsetting workflows. Some preliminary thoughts on making this data more 'serviceable' are also given.
+The `NFHL` package provides access data from FEMA's [National Flood Hazards Layers](https://www.fema.gov/national-flood-hazard-layer-nfhl). It integates with the [AOI](https://github.com/mikejohnson51/AOI) package for spatial subsetting  workflows and offers functionality to extract and query NFHL layers. 
 
 ## Installation
 
-You can install the development version of NFHL from  [GitHub](https://github.com/) with:
+You can install the development version of `NFHL` from  [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
@@ -61,54 +49,46 @@ library(dplyr)
 ## Basic Workflow
 
 ### Layer IDs
-The NFHL offers data for `r nrow(nfhl_meta)` layers whose type and ID can be found with `nfhl_meta`:
+The NFHL contains data for `r nrow(nfhl_meta)` layers. Use `nfhl_meta` to view the list of available layer IDs and names.
 
 ```{r, eval = F}
 nfhl_meta
 ```
 
 ```{r, echo = F}
-DT::datatable(nfhl_meta, 
-              options = list(paging = FALSE,
-                             search = FALSE,
-                               dom = 't'),
-              rownames = F)
+print(nfhl_meta)
 ```
 
-### LayerID descriptions
+### Layer descriptions
 
-Some of the layer names are vague. The `describe_nfhl` function scrapes the metadata for a given layerID and provides the name, description and spatial extents. 
-
-Lets learn more about layerID 14, 'Cross-Sections':
+To get detailed information, such as layer name, description, and bounding box, use the `nfhl_describe()` function. For example, let's explore Layer ID 14 (Cross-Sections):
 
 ```{r}
 nfhl_describe(14)
 ```
 
-### Getting Spatial Data
+### Extracting Spatial Data
 
-The `nfhl_get` function extracts the spatial data from the NDHL layers for a given spatial extent. 
+The `nfhl_get()` function retrieves spatial data for a specific layer and area of interest (AOI). The general workflow involves:
 
-A general workflow using the AOI/NFHL packages is 
-
-  1. defining an AOI extent  
-  2. identifying a NFHL layerID  
-  3. extracting the data  
+1. Defining an AOI.
+2. Selecting a layer ID.
+3. Extracting spatial data.
 
 ```{r}
 # Define an AOI around UCSB
-AOI <- aoi_get(list("UCSB", 10, 10))
+AOI <- AOI::aoi_ext("UCSB", wh = 10, units = "km", bbox = TRUE) |> 
+  st_as_sf()
 
-# Look at layerID 28 description
+# View at Layer ID 28 description
 nfhl_describe(28)$Description
 
-# Extract Flood Hazard Polygons and filter
+# Extract Flood Hazard Polygons and filter by Special Flood Hazard Areas (SFHA)
 floodhazard <- nfhl_get(AOI, 28) %>% 
   filter(SFHA_TF == "T")
 ```
 
 ```{r, echo = FALSE}
- tm_shape(bg) + tm_rgb() +
  tm_shape(floodhazard) +
   tm_fill(col = 'STUDY_TYP') +
   tm_borders() +
@@ -117,42 +97,60 @@ floodhazard <- nfhl_get(AOI, 28) %>%
           legend.outside = TRUE,
           legend.outside.position = 'bottom',
           legend.bg.alpha = 1)
+
 ```
 
 ## Examples
 
-### NHD and Cross-sections
+### Overlaying NHD and NFHL Cross-Sections
 
-Before we learned that the NFHL offered cross-sectional information (ID: 14). Lets get this data for our UCSB AOI, and overlay it with hydrographic data from the National Hydrography Dataset (NHD) found with the [HydroData](https://github.com/mikejohnson51/HydroData) package.
+Layer ID 14 provides cross-sectional data. Let’s overlay it with hydrographic data from the National Hydrography Dataset (NHD) using the `nhdplusTools` package:
+
+Before we learned that the NFHL offered cross-sectional information (ID: 14). Lets get this data for our UCSB AOI, and overlay it with hydrographic data from NHD.
 
 ```{r, message = F, warning = F}
-nhd <- HydroData::findNHD(AOI)[[2]]
-# Note that any sf object can be passed to nfhl_get
+# Get NHD data for the AOI
+nhd <- nhdplusTools::get_nhdplus(AOI)
+
+# Extract NFHL Cross-Section data (ID: 14)
 cs  <- nfhl_get(nhd, 14)
 ```
 
 ```{r echo = FALSE}
-tm_shape(bg) + 
-  tm_rgb() +
  tm_shape(cs) +
    tm_lines() +
-  tm_shape(nhd) +
+   tm_shape(nhd) +
    tm_lines(col = "blue") +
-  tm_compass(type = "8star", position = c("right", "bottom")) 
+   tm_compass(type = "8star", position = c("right", "bottom")) 
 ```
 
-## "Linked" NHD and General Structures Data
+## Linking General Structures with NHD
 
-Lets look at one final example where we extract the "General Structures" identified in the NFHL (ID: 24) within the UCSB AOI.
+Layer ID 24 provides data on "General Structures." Here, we extract this layer, overlay it with NHD data, and identify structures that cross NHD features.
 
 ```{r}
+# Describe Layer ID 24
 nfhl_describe(24)$Description
+
+# Extract General Structures
 stru <- nfhl_get(AOI, 24)
+
+# Identify crossings between structures and NHD data
+crossings = st_join(stru, 
+             st_transform(nhd, st_crs(stru)),
+             join = st_crosses,
+             left = FALSE) %>% 
+  st_drop_geometry() %>% 
+  mutate(realtionship = "crosses") %>% 
+  select(OBJECTID, realtionship, comid, STRUCT_TYP, LAYER)
+
+# View results
+head(crossings)
 ```
 
+Here, we identified `r nrow(crossings)` structural crossing's in the AOI river networ. For example, bridge 932599 crosses COMID 17596113.
 
 ```{r echo = FALSE}
-tm_shape(bg) + tm_rgb() +
   tm_shape(nhd) +
   tm_lines(col = "blue") +
  tm_shape(stru) +
@@ -167,82 +165,10 @@ tm_shape(bg) + tm_rgb() +
           legend.bg.alpha = 1)
 ```
 
-For some, linking these general structures to the NHD might be useful. Here we'll find those that cross the NHD, and add the 'crosses' relationship.
-
-```{r, warning=F,message=F}
-xx = st_join(stru, 
-        st_transform(nhd, st_crs(stru)),
-        join = st_crosses,
-        left = FALSE) %>% 
-  st_drop_geometry() %>% 
-  mutate(realtionship = "crosses") %>% 
-  select(OBJECTID, realtionship, comid, STRUCT_TYP, LAYER)
-
-dim(xx)
-head(xx)
-```
-
-In total we find 43 structures that cross the NHD, relation 1 in the above tibble tells us that bridge 2533589 crosses COMID 17595405.
-
-## Generalize to URIs
-
-Each of these features (Structure and COMID) can be resolved to a URI using the following patterns:
-
-```{r}
-fema_base = 'https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/'
-usgs_base = 'https://labs.waterdata.usgs.gov/api/nldi/linked-data/comid/'
-
-linked = xx %>% 
-  mutate(str_uri = sprintf("%s%s/query?&objectIds=%s&outFields=*&f=geoJSON", fema_base, LAYER,OBJECTID),
-         realtionship,
-         comid_uri = paste0(usgs_base, comid)) %>% 
-  select(str_uri, realtionship, comid_uri)
-
-head(linked)
-```
-
-## Working with URIs
-
-The basic URI stings can then be directly called to operate on and use the represented features!
-
-### Basic Mapping
-
-```{r, echo = F}
-bg2 = raster::crop(bg, read_sf(linked$comid_uri[1]))
-```
-
-```{r}
-tm_shape(bg2) + tm_rgb() +
-  tm_shape(read_sf(linked$str_uri[1])) +
-  tm_lines(col = "red", lwd = 5) +
- tm_shape(read_sf(linked$comid_uri[1])) +
-  tm_lines(col = 'blue', lwd = 2) +
-  tm_layout(title = read_sf(linked$str_uri[1])$STRUCT_TYP)
-```
-
-### Elevation at Intersection
-
-We can use our resource URIs to call the respective spatial features, intersect, them, extract the coordinates or intersection, and use those to query the USGS elevation API:
-
-```{r, warning=F, message=F}
-system.time({
-  ## Coordinates of Intersection
-  coords <- st_coordinates(st_intersection(read_sf(linked$comid_uri[1]), 
-                           read_sf(linked$str_uri[1])))
-  
-  # Query USGS elevation API
-  url <- sprintf('http://ned.usgs.gov/epqs/pqs.php?x=%s&y=%s&units=Meters&output=json', coords[1], coords[2]) 
-          
-  elev = read_json(url) 
-})
-```
-
-```{r}
-(elev)
-```
+Here, we identified `r nrow(crossings)` structural crossing's in the AOI river networ. For example, bridge 932599 crosses COMID 17596113.
 
 ## Acknowledgements
 
-[Mike Johnson](http://mikejohnson51.github.io) is a graduate student in geography working with [Keith Clarke](http://www.geog.ucsb.edu/~kclarke/). This work contributes to the NSF funded [Convergence Accelorator Program](https://nsf.gov/awardsearch/showAward?AWD_ID=1937099&HistoricalAwards=false) on [Urban Flooding](https://ufokn.github.io/UFOKN/).
+[Mike Johnson](http://mikejohnson51.github.io) is the Geospatial Science and Technology Lead at NOAA's Office of Water Prediction (OWP). This work contributes to the NSFfunded [Convergence Accelorator Program](https://nsf.gov/awardsearch/showAward?AWD_ID=1937099&HistoricalAwards=false) on [Urban Flooding](https://ufokn.github.io/UFOKN/).
 
-This package is experimental and comes with no guarantee `r emo::ji("smile")`. Pull requests are welcome!!
+This package is experimental and comes with no guarantee. Pull requests are welcome!!

@@ -2,16 +2,29 @@
 % Please edit documentation in R/nfhl_functions.R
 \name{nfhl_describe}
 \alias{nfhl_describe}
-\title{Query meta data of NFHL by layer ID}
+\title{Query Metadata of NFHL Layer by ID}
 \usage{
 nfhl_describe(layer = 28)
 }
 \arguments{
-\item{layer}{the layer ID to query}
+\item{layer}{Integer. The NFHL layer ID to query. Default is 28.}
 }
 \value{
-a list containg the layer Name, Description, and bounding box
+A list containing:
+\itemize{
+  \item \code{Layer}: The name of the queried layer.
+  \item \code{Description}: A brief description of the layer.
+  \item \code{bbox}: A bounding box of the layer's extent as an \code{sf} object.
+}
 }
 \description{
-Query meta data of NFHL by layer ID
+Retrieves metadata for a specific layer in the National Flood Hazard Layers (NFHL).
+}
+\examples{
+\dontrun{
+metadata <- nfhl_describe(layer = 28)
+print(metadata$Layer)
+print(metadata$Description)
+plot(metadata$bbox)
+}
 }

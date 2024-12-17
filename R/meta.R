@@ -1,3 +1,7 @@
+#' @title National Flood Hazard Layer Metadata
+#' @description A data.frame specifying Layer ID for each date type.
+#' @export
+
 nfhl_meta = data.frame(type = c('NFHL Availability',
 'LOMRs',
 'LOMAs',
