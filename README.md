@@ -9,6 +9,7 @@
 [![Dependencies](https://img.shields.io/badge/dependencies-4/19-green?style=flat)](#)
 [![R CMD
 Check](https://github.com/mikejohnson51/NFHL/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/mikejohnson51/NFHL/actions/workflows/R-CMD-check.yaml)
+[![Website](https://github.com/mikejohnson51/NFHL/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/mikejohnson51/NFHL/actions/workflows/pkgdown.yaml)
 <!-- badges: end -->
 
 The `NFHL` package provides access data from FEMA’s [National Flood
